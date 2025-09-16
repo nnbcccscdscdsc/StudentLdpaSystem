@@ -147,7 +147,7 @@ if manager.connect():
     manager.import_students_from_csv('students_sample.csv')
     
     # 从Ex
-    
+
     manager.import_students_from_excel('students.xlsx')
     
     # 断开连接
@@ -212,25 +212,3 @@ students = manager.list_students()
 2. 在 `templates/` 中创建对应的HTML模板
 3. 在 `static/` 中添加CSS/JS资源
 
-### 修改LDAP结构
-1. 更新 `ldap_config.ldif`
-2. 修改 `student_db_manager.py` 中的相关方法
-3. 重新初始化LDAP数据库
-
-## 📄 许可证
-
-本项目采用MIT许可证，详见LICENSE文件。
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request来改进项目。
-
-## 📞 支持
-
-如有问题，请通过以下方式联系：
-- 提交Issue
-- 发送邮件至：support@szuldpa-edu.com
-
----
-
-**注意**：本系统仅用于学习和测试目的，生产环境使用请进行适当的安全加固。
