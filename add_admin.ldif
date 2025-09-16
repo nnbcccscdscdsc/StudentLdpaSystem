@@ -1,0 +1,8 @@
+dn: uid=Jamie,ou=students,dc=szuldpa-edu,dc=com
+objectClass: inetOrgPerson
+uid: Jamie
+cn: Jamie
+sn: Admin
+mail: jamie@szuldpa-edu.com
+userPassword: 123456
+description: role:admin

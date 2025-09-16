@@ -1,0 +1,73 @@
+# LDAP配置文件和数据库结构定义
+# 用于学生LDAP系统
+
+# 1. 创建组织单位(OU)结构
+dn: ou=students,dc=example,dc=com
+objectClass: organizationalUnit
+ou: students
+description: 学生信息组织单位
+
+dn: ou=teachers,dc=example,dc=com
+objectClass: organizationalUnit
+ou: teachers
+description: 教师信息组织单位
+
+dn: ou=classes,dc=example,dc=com
+objectClass: organizationalUnit
+ou: classes
+description: 班级信息组织单位
+
+# 2. 创建学生用户示例
+dn: uid=student001,ou=students,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: student001
+cn: 张三
+sn: 张
+givenName: 三
+mail: student001@example.com
+userPassword: {SSHA}password123
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/student001
+loginShell: /bin/bash
+
+dn: uid=student002,ou=students,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: student002
+cn: 李四
+sn: 李
+givenName: 四
+mail: student002@example.com
+userPassword: {SSHA}password123
+uidNumber: 1002
+gidNumber: 1002
+homeDirectory: /home/student002
+loginShell: /bin/bash
+
+# 3. 创建教师用户示例
+dn: uid=teacher001,ou=teachers,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: teacher001
+cn: 王老师
+sn: 王
+givenName: 老师
+mail: teacher001@example.com
+userPassword: {SSHA}password123
+uidNumber: 2001
+gidNumber: 2001
+homeDirectory: /home/teacher001
+loginShell: /bin/bash
+
+# 4. 创建班级信息
+dn: cn=class001,ou=classes,dc=example,dc=com
+objectClass: groupOfNames
+cn: class001
+description: 计算机科学与技术2021级1班
+member: uid=student001,ou=students,dc=example,dc=com
+member: uid=student002,ou=students,dc=example,dc=com
