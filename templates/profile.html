@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}个人信息 - 学生LDAP系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-edit me-2"></i>
+                个人信息管理
+            </h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i>返回首页
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 个人信息表单 -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    修改个人信息
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_profile') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="uid" class="form-label">
+                                <i class="fas fa-id-card me-1"></i>用户ID
+                            </label>
+                            <input type="text" class="form-control" id="uid" value="{{ user_info.uid if user_info else '未知' }}" readonly>
+                            <div class="form-text">用户ID不可修改</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cn" class="form-label">
+                                <i class="fas fa-user me-1"></i>姓名 <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="cn" name="cn" 
+                                   value="{{ user_info.cn if user_info else '' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="sn" class="form-label">
+                                <i class="fas fa-signature me-1"></i>姓氏 <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="sn" name="sn" 
+                                   value="{{ user_info.sn if user_info else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mail" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>邮箱 <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control" id="mail" name="mail" 
+                                   value="{{ user_info.mail if user_info else '' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-1"></i>新密码
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="留空表示不修改密码">
+                            <div class="form-text">留空表示不修改密码</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">
+                                <i class="fas fa-lock me-1"></i>确认新密码
+                            </label>
+                            <input type="password" class="form-control" id="confirm_password" 
+                                   placeholder="再次输入新密码">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-graduation-cap me-1"></i>班级信息
+                            </label>
+                            <input type="text" class="form-control" id="description" 
+                                   value="{{ user_info.description if user_info else '' }}" readonly>
+                            <div class="form-text">班级信息请联系管理员修改</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary me-md-2" onclick="resetForm()">
+                            <i class="fas fa-undo me-1"></i>重置
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 个人信息预览 -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    信息预览
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if user_info %}
+                <div class="info-preview">
+                    <div class="info-item">
+                        <strong>用户ID:</strong>
+                        <span class="text-muted">{{ user_info.uid }}</span>
+                    </div>
+                    <hr>
+                    <div class="info-item">
+                        <strong>姓名:</strong>
+                        <span class="text-primary">{{ user_info.cn }}</span>
+                    </div>
+                    <hr>
+                    <div class="info-item">
+                        <strong>姓氏:</strong>
+                        <span class="text-primary">{{ user_info.sn }}</span>
+                    </div>
+                    <hr>
+                    <div class="info-item">
+                        <strong>邮箱:</strong>
+                        <span class="text-info">{{ user_info.mail }}</span>
+                    </div>
+                    <hr>
+                    <div class="info-item">
+                        <strong>班级:</strong>
+                        <span class="badge bg-secondary">{{ user_info.description }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <p>无法获取用户信息</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 安全提示 -->
+        <div class="card mt-3">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    安全提示
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li><i class="fas fa-check text-success me-2"></i>请使用强密码</li>
+                    <li><i class="fas fa-check text-success me-2"></i>定期更新密码</li>
+                    <li><i class="fas fa-check text-success me-2"></i>保护个人信息</li>
+                    <li><i class="fas fa-check text-success me-2"></i>及时更新邮箱</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.info-preview .info-item {
+    padding: 0.5rem 0;
+}
+
+.info-preview .info-item strong {
+    display: inline-block;
+    width: 80px;
+    color: #6c757d;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function resetForm() {
+    if (confirm('确定要重置表单吗？所有未保存的修改将丢失。')) {
+        document.querySelector('form').reset();
+    }
+}
+
+// 密码确认验证
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    
+    if (password && confirmPassword && password !== confirmPassword) {
+        this.setCustomValidity('密码不匹配');
+        this.classList.add('is-invalid');
+    } else {
+        this.setCustomValidity('');
+        this.classList.remove('is-invalid');
+    }
+});
+
+// 表单提交验证
+document.querySelector('form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password && password !== confirmPassword) {
+        e.preventDefault();
+        alert('密码不匹配，请重新输入！');
+        return false;
+    }
+});
+</script>
+{% endblock %}

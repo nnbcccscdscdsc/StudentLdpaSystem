@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}学生管理 - 学生LDAP系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users me-2"></i>
+                学生管理
+            </h2>
+            <div>
+                <button class="btn btn-success me-2" onclick="showAddStudentModal()">
+                    <i class="fas fa-plus me-1"></i>添加学生
+                </button>
+                <button class="btn btn-info" onclick="showImportModal()">
+                    <i class="fas fa-upload me-1"></i>批量导入
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 学生列表 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    学生列表 ({{ students|length }} 人)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if students %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>用户ID</th>
+                                <th>姓名</th>
+                                <th>姓氏</th>
+                                <th>邮箱</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    <code>{{ student.uid }}</code>
+                                </td>
+                                <td>
+                                    <strong>{{ student.cn }}</strong>
+                                </td>
+                                <td>{{ student.sn }}</td>
+                                <td>
+                                    <a href="mailto:{{ student.mail }}" class="text-decoration-none">
+                                        {{ student.mail }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewStudent('{{ student.uid }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-warning" onclick="editStudent('{{ student.uid }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="deleteStudent('{{ student.uid }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">暂无学生数据</h5>
+                    <p class="text-muted">点击"添加学生"按钮开始添加学生信息</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加学生模态框 -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>添加学生
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    <div class="mb-3">
+                        <label for="addUid" class="form-label">用户ID</label>
+                        <input type="text" class="form-control" id="addUid" name="uid" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addCn" class="form-label">姓名</label>
+                        <input type="text" class="form-control" id="addCn" name="cn" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addSn" class="form-label">姓氏</label>
+                        <input type="text" class="form-control" id="addSn" name="sn" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addMail" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="addMail" name="mail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addPassword" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="addPassword" name="password" value="123456">
+                    </div>
+                    <div class="mb-3">
+                        <label for="addClass" class="form-label">班级</label>
+                        <input type="text" class="form-control" id="addClass" name="class_name" placeholder="例如：计算机2021-1班">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="submitAddStudent()">添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量导入模态框 -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>批量导入学生
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>导入说明：</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>支持CSV和Excel文件格式</li>
+                        <li>CSV文件列名：uid,cn,sn,mail,password,class_name</li>
+                        <li>示例文件：<a href="{{ url_for('static', filename='students_sample.csv') }}" download>下载示例CSV文件</a></li>
+                    </ul>
+                </div>
+                <form id="importForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="importFile" class="form-label">选择文件</label>
+                        <input type="file" class="form-control" id="importFile" name="file" accept=".csv,.xlsx,.xls" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-info" onclick="submitImport()">开始导入</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content {
+    border-radius: 15px;
+}
+
+.modal-header {
+    border-radius: 15px 15px 0 0;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showAddStudentModal() {
+    const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+    modal.show();
+}
+
+function showImportModal() {
+    const modal = new bootstrap.Modal(document.getElementById('importModal'));
+    modal.show();
+}
+
+function submitAddStudent() {
+    // 这里应该发送AJAX请求到后端添加学生
+    alert('添加学生功能需要后端API支持');
+}
+
+function submitImport() {
+    // 这里应该发送文件到后端进行批量导入
+    alert('批量导入功能需要后端API支持');
+}
+
+function viewStudent(uid) {
+    alert('查看学生信息：' + uid);
+}
+
+function editStudent(uid) {
+    alert('编辑学生信息：' + uid);
+}
+
+function deleteStudent(uid) {
+    if (confirm('确定要删除学生 ' + uid + ' 吗？')) {
+        alert('删除学生：' + uid);
+    }
+}
+</script>
+{% endblock %}

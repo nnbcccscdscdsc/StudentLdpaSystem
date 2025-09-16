@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}登录 - 学生LDAP系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    用户登录
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user me-1"></i>用户名
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="请输入用户名" required autofocus>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>密码
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="请输入密码" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="captcha" class="form-label">
+                            <i class="fas fa-shield-alt me-1"></i>验证码
+                        </label>
+                        <div class="row">
+                            <div class="col-7">
+                                <input type="text" class="form-control" id="captcha" name="captcha" 
+                                       placeholder="请输入验证码" required>
+                            </div>
+                            <div class="col-5">
+                                <div class="captcha-container">
+                                    <img id="captcha-image" src="{{ captcha }}" alt="验证码" 
+                                         class="img-fluid border rounded" style="cursor: pointer; height: 40px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            点击验证码图片可刷新
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>登录
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center text-muted">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    测试用户: student001, student002, student003, student004, student005<br>
+                    默认密码: 123456
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 系统介绍 -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="card-title text-primary">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    欢迎使用学生LDAP系统
+                </h3>
+                <p class="card-text lead">
+                    基于OpenLDAP构建的现代化学生信息管理系统
+                </p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="feature-box">
+                            <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                            <h5>安全认证</h5>
+                            <p class="text-muted">基于LDAP的安全用户认证系统</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-box">
+                            <i class="fas fa-users fa-3x text-success mb-3"></i>
+                            <h5>用户管理</h5>
+                            <p class="text-muted">完整的用户信息管理和权限控制</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-box">
+                            <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                            <h5>数据分析</h5>
+                            <p class="text-muted">实时数据统计和分析功能</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.feature-box {
+    padding: 2rem 1rem;
+    transition: transform 0.3s ease;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px);
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.btn-primary {
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 500;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.captcha-container {
+    text-align: center;
+}
+
+.captcha-container img {
+    border: 2px solid #e9ecef;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.captcha-container img:hover {
+    border-color: #0d6efd;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 验证码刷新功能
+document.addEventListener('DOMContentLoaded', function() {
+    const captchaImage = document.getElementById('captcha-image');
+    const captchaInput = document.getElementById('captcha');
+    
+    if (captchaImage) {
+        captchaImage.addEventListener('click', function() {
+            fetch('/captcha')
+                .then(response => response.json())
+                .then(data => {
+                    captchaImage.src = data.captcha;
+                    captchaInput.value = '';
+                })
+                .catch(error => {
+                    console.error('刷新验证码失败:', error);
+                });
+        });
+    }
+    
+    // 表单提交时不清空验证码输入框，让后端处理
+    // const form = document.querySelector('form');
+    // if (form) {
+    //     form.addEventListener('submit', function() {
+    //         captchaInput.value = '';
+    //     });
+    // }
+});
+</script>
+{% endblock %}

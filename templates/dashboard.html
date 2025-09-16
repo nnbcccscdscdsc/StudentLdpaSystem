@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心 - 学生LDAP系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-home me-2"></i>
+                个人中心
+            </h2>
+            <span class="badge bg-primary fs-6">
+                <i class="fas fa-user me-1"></i>
+                {{ user_name }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 用户信息卡片 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-circle me-2"></i>
+                    个人信息
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if user_info %}
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>用户ID:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <code>{{ user_info.uid }}</code>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>姓名:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        {{ user_info.cn }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>姓氏:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        {{ user_info.sn }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>邮箱:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <a href="mailto:{{ user_info.mail }}" class="text-decoration-none">
+                            {{ user_info.mail }}
+                        </a>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>班级:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-secondary">{{ user_info.description }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <p>无法获取用户信息</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统状态卡片 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    系统状态
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <i class="fas fa-server fa-2x text-success mb-2"></i>
+                            <h6>LDAP服务</h6>
+                            <span class="badge bg-success">运行中</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <i class="fas fa-database fa-2x text-info mb-2"></i>
+                            <h6>数据库</h6>
+                            <span class="badge bg-info">正常</span>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <i class="fas fa-users fa-2x text-warning mb-2"></i>
+                            <h6>在线用户</h6>
+                            <span class="badge bg-warning">1</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-item">
+                            <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                            <h6>登录时间</h6>
+                            <small class="text-muted">刚刚</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    快速操作
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-user-edit me-2"></i>
+                            个人信息
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('admin') }}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-users me-2"></i>
+                            学生管理
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-info w-100" onclick="showHelp()">
+                            <i class="fas fa-question-circle me-2"></i>
+                            帮助中心
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            退出登录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-item {
+    padding: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-3px);
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function refreshData() {
+    location.reload();
+}
+
+function showHelp() {
+    alert('帮助信息：\n\n1. 点击"学生管理"可以查看和管理所有学生信息\n2. 点击"刷新数据"可以重新加载页面数据\n3. 点击"退出登录"可以安全退出系统\n\n如有问题，请联系系统管理员。');
+}
+</script>
+{% endblock %}
