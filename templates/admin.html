@@ -14,7 +14,7 @@
                 <button class="btn btn-success me-2" onclick="showAddStudentModal()">
                     <i class="fas fa-plus me-1"></i>添加学生
                 </button>
-                <button class="btn btn-info" onclick="showImportModal()">
+                <button class="btn btn-outline-primary" onclick="showImportModal()">
                     <i class="fas fa-upload me-1"></i>批量导入
                 </button>
             </div>
@@ -26,49 +26,51 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <!-- <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-list me-2"></i>
-                    学生列表 ({{ students|length }} 人)
+                    学生列表 ({{ pagination.total }} 人)
                 </h5>
-            </div>
+            </div> -->
             <div class="card-body p-0">
                 {% if students %}
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th>用户ID</th>
-                                <th>姓名</th>
-                                <th>姓氏</th>
-                                <th>邮箱</th>
-                                <th>操作</th>
+                                <th><i class="fas fa-id-card me-2"></i>用户ID</th>
+                                <th><i class="fas fa-user me-2"></i>姓名</th>
+                                <th><i class="fas fa-graduation-cap me-2"></i>班级</th>
+                                <th><i class="fas fa-envelope me-2"></i>邮箱</th>
+                                <th class="text-center"><i class="fas fa-cogs me-2"></i>操作</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for student in students %}
-                            <tr>
+                            <tr class="align-middle">
                                 <td>
-                                    <code>{{ student.uid }}</code>
+                                    <span class="user-id-modern">{{ student.uid }}</span>
                                 </td>
                                 <td>
-                                    <strong>{{ student.cn }}</strong>
+                                    <span class="fw-medium">{{ student.cn }}</span>
                                 </td>
-                                <td>{{ student.sn }}</td>
+                                <td>
+                                    <span class="class-badge-modern {{ 'admin' if student.class_name == '管理员' else '' }}">{{ student.class_name }}</span>
+                                </td>
                                 <td>
                                     <a href="mailto:{{ student.mail }}" class="text-decoration-none">
-                                        {{ student.mail }}
+                                        <i class="fas fa-envelope me-1"></i>{{ student.mail }}
                                     </a>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" onclick="viewStudent('{{ student.uid }}')">
+                                        <button class="btn btn-outline-info" onclick="viewStudent('{{ student.uid }}')" title="查看">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button class="btn btn-outline-warning" onclick="editStudent('{{ student.uid }}')">
+                                        <button class="btn btn-outline-warning" onclick="editStudent('{{ student.uid }}')" title="编辑">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="btn btn-outline-danger" onclick="deleteStudent('{{ student.uid }}')">
+                                        <button class="btn btn-outline-danger" onclick="deleteStudent('{{ student.uid }}')" title="删除">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -86,6 +88,70 @@
                 </div>
                 {% endif %}
             </div>
+            
+            <!-- 分页导航 -->
+            {% if pagination.total > 0 %}
+            <div class="card-footer bg-light mb-0">
+                <nav aria-label="学生列表分页">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            显示第 {{ (pagination.page - 1) * pagination.per_page + 1 }} - 
+                            {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total else pagination.total }} 
+                            条，共 {{ pagination.total }} 条记录
+                        </div>
+                        <ul class="pagination pagination-sm mb-0">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin', page=pagination.prev_page) }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            </li>
+                            {% endif %}
+                            
+                            {% for page_num in range(1, pagination.total_pages + 1) %}
+                                {% if page_num == pagination.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('admin', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                                {% elif page_num == 4 and pagination.page > 5 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% elif page_num == pagination.total_pages - 3 and pagination.page < pagination.total_pages - 4 %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin', page=pagination.next_page) }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -104,23 +170,23 @@
                 <form id="addStudentForm">
                     <div class="mb-3">
                         <label for="addUid" class="form-label">用户ID</label>
-                        <input type="text" class="form-control" id="addUid" name="uid" required>
+                        <input type="text" class="form-control" id="addUid" name="uid" required placeholder="请输入用户ID">
                     </div>
                     <div class="mb-3">
                         <label for="addCn" class="form-label">姓名</label>
-                        <input type="text" class="form-control" id="addCn" name="cn" required>
+                        <input type="text" class="form-control" id="addCn" name="cn" required placeholder="请输入姓名">
                     </div>
                     <div class="mb-3">
                         <label for="addSn" class="form-label">姓氏</label>
-                        <input type="text" class="form-control" id="addSn" name="sn" required>
+                        <input type="text" class="form-control" id="addSn" name="sn" required placeholder="请输入姓氏">
                     </div>
                     <div class="mb-3">
                         <label for="addMail" class="form-label">邮箱</label>
-                        <input type="email" class="form-control" id="addMail" name="mail" required>
+                        <input type="email" class="form-control" id="addMail" name="mail" required placeholder="请输入邮箱地址">
                     </div>
                     <div class="mb-3">
                         <label for="addPassword" class="form-label">密码</label>
-                        <input type="password" class="form-control" id="addPassword" name="password" value="123456">
+                        <input type="password" class="form-control" id="addPassword" name="password" value="123456" placeholder="默认密码：123456">
                     </div>
                     <div class="mb-3">
                         <label for="addClass" class="form-label">班级</label>
@@ -131,6 +197,71 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                 <button type="button" class="btn btn-success" onclick="submitAddStudent()">添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑学生模态框 -->
+<div class="modal fade" id="editStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-edit me-2"></i>编辑学生
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editStudentForm">
+                    <input type="hidden" id="editUid" name="uid">
+                    <div class="mb-3">
+                        <label for="editCn" class="form-label">姓名</label>
+                        <input type="text" class="form-control" id="editCn" name="cn" required placeholder="请输入姓名">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSn" class="form-label">姓氏</label>
+                        <input type="text" class="form-control" id="editSn" name="sn" required placeholder="请输入姓氏">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMail" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="editMail" name="mail" required placeholder="请输入邮箱地址">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="editPassword" name="password" placeholder="留空则不修改密码">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClass" class="form-label">班级</label>
+                        <input type="text" class="form-control" id="editClass" name="class_name" placeholder="例如：计算机2021-1班">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-warning" onclick="submitEditStudent()">更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 查看学生详情模态框 -->
+<div class="modal fade" id="viewStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-circle me-2"></i>学生详情
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="studentDetails">
+                    <!-- 学生详情将在这里显示 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
@@ -174,36 +305,381 @@
 
 {% block extra_css %}
 <style>
-.table th {
-    border-top: none;
+/* 整体布局优化 */
+.container-fluid {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+/* 主卡片样式 */
+.main-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+/* 页面标题 */
+.page-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    margin: -1rem -1rem 2rem -1rem;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-title::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.page-title h2 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+/* 操作按钮区域 */
+.action-bar {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.btn-modern {
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
     font-weight: 600;
-}
-
-.btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
-}
-
-.card {
+    font-size: 1rem;
     border: none;
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.modal-content {
-    border-radius: 15px;
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.modal-header {
-    border-radius: 15px 15px 0 0;
+.btn-success-modern {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    color: white;
 }
 
-.btn {
-    border-radius: 8px;
+.btn-info-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* 表格样式完全重设计 */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f3f4;
+}
+
+.table {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.table thead th {
+    background: #ffffff;
+    color: #6c757d;
+    border: none;
+    padding: 1.5rem 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table thead th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background: #e9ecef;
+}
+
+
+.table tbody td {
+    padding: 1.25rem 1rem;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+    font-size: 1.1rem;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 现代风格用户ID */
+.user-id-modern {
+    background: #f5f5f5;
+    color: #616161;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-block;
+    border: 1px solid #e0e0e0;
+    font-family: 'Courier New', monospace;
+    transition: all 0.2s ease;
+}
+
+.user-id-modern:hover {
+    background: #eeeeee;
+    color: #424242;
+    transform: translateY(-1px);
+}
+
+/* 用户信息样式 */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.user-avatar.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.user-avatar.success { background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); }
+.user-avatar.warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.user-avatar.info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.user-avatar.danger { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+.user-name {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #2c3e50;
+}
+
+/* 现代风格班级徽章 */
+.class-badge-modern {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
     font-weight: 500;
+    font-size: 0.85rem;
+    display: inline-block;
+    border: 1px solid #bbdefb;
+    transition: all 0.2s ease;
 }
 
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 123, 255, 0.05);
+.class-badge-modern:hover {
+    background: #bbdefb;
+    color: #0d47a1;
+    transform: translateY(-1px);
+}
+
+/* 管理员特殊样式 */
+.class-badge-modern.admin {
+    background: #ffebee;
+    color: #c62828;
+    border-color: #ffcdd2;
+}
+
+.class-badge-modern.admin:hover {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+/* 邮箱链接样式 */
+.email-link {
+    color: #4facfe;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.email-link:hover {
+    color: #00f2fe;
+    text-decoration: none;
+    transform: translateX(5px);
+}
+
+/* 操作按钮样式 */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn.view {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.action-btn.edit {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.action-btn.delete {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+}
+
+/* 分页样式 */
+.pagination-container {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0 0 15px 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+/* 减少页脚上方留白 */
+.container-fluid {
+    padding-bottom: 1rem;
+}
+
+/* 调整主内容区域底部边距 */
+main.container {
+    margin-bottom: 0;
+    padding-bottom: 1rem;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.pagination {
+    margin: 0;
+}
+
+.pagination .page-link {
+    border: none;
+    border-radius: 10px;
+    margin: 0 3px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: #4facfe;
+    background: white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.pagination .page-link:hover {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #e9ecef;
+    color: #6c757d;
+    box-shadow: none;
+}
+
+/* 空状态样式 */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h5 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem 0;
+    }
+    
+    .page-title h2 {
+        font-size: 2rem;
+    }
+    
+    .table {
+        font-size: 1rem;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .action-buttons {
+        justify-content: center;
+    }
 }
 </style>
 {% endblock %}
@@ -221,8 +697,119 @@ function showImportModal() {
 }
 
 function submitAddStudent() {
-    // 这里应该发送AJAX请求到后端添加学生
-    alert('添加学生功能需要后端API支持');
+    // 获取表单数据
+    const form = document.getElementById('addStudentForm');
+    const formData = new FormData(form);
+    
+    // 转换为JSON格式
+    const data = {
+        uid: formData.get('uid'),
+        cn: formData.get('cn'),
+        sn: formData.get('sn'),
+        mail: formData.get('mail'),
+        password: formData.get('password'),
+        class_name: formData.get('class_name')
+    };
+    
+    // 显示加载状态
+    const submitBtn = document.querySelector('#addStudentModal .btn-success');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>添加中...';
+    submitBtn.disabled = true;
+    
+    // 发送AJAX请求
+    fetch('/api/add_student', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // 成功提示
+            showAlert('success', result.message);
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+            modal.hide();
+            // 清空表单
+            form.reset();
+            // 刷新页面
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            // 错误提示
+            showAlert('error', result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '网络错误，请稍后重试！');
+    })
+    .finally(() => {
+        // 恢复按钮状态
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function submitEditStudent() {
+    // 获取表单数据
+    const form = document.getElementById('editStudentForm');
+    const formData = new FormData(form);
+    const uid = formData.get('uid');
+    
+    // 转换为JSON格式
+    const data = {
+        cn: formData.get('cn'),
+        sn: formData.get('sn'),
+        mail: formData.get('mail'),
+        password: formData.get('password'),
+        class_name: formData.get('class_name')
+    };
+    
+    // 显示加载状态
+    const submitBtn = document.querySelector('#editStudentModal .btn-warning');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>更新中...';
+    submitBtn.disabled = true;
+    
+    // 发送AJAX请求
+    fetch(`/api/update_student/${uid}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // 成功提示
+            showAlert('success', result.message);
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
+            modal.hide();
+            // 刷新页面
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            // 错误提示
+            showAlert('error', result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '网络错误，请稍后重试！');
+    })
+    .finally(() => {
+        // 恢复按钮状态
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
 }
 
 function submitImport() {
@@ -231,17 +818,164 @@ function submitImport() {
 }
 
 function viewStudent(uid) {
-    alert('查看学生信息：' + uid);
+    // 显示加载状态
+    const modal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
+    const detailsDiv = document.getElementById('studentDetails');
+    detailsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>加载中...</div>';
+    modal.show();
+    
+    // 获取学生详情
+    fetch(`/api/get_student/${uid}`)
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const student = result.data;
+            detailsDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-sm-4"><strong>用户ID:</strong></div>
+                    <div class="col-sm-8"><code>${student.uid}</code></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>姓名:</strong></div>
+                    <div class="col-sm-8">${student.cn}</div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>姓氏:</strong></div>
+                    <div class="col-sm-8">${student.sn}</div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>邮箱:</strong></div>
+                    <div class="col-sm-8">
+                        <a href="mailto:${student.mail}" class="text-decoration-none">
+                            <i class="fas fa-envelope me-1"></i>${student.mail}
+                        </a>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-4"><strong>班级:</strong></div>
+                    <div class="col-sm-8">
+                        <span class="class-badge-modern ${student.class_name === '管理员' ? 'admin' : ''}">${student.class_name}</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            detailsDiv.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        detailsDiv.innerHTML = '<div class="alert alert-danger">加载失败，请稍后重试！</div>';
+    });
 }
 
 function editStudent(uid) {
-    alert('编辑学生信息：' + uid);
+    // 显示加载状态
+    const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+    const form = document.getElementById('editStudentForm');
+    form.reset();
+    document.getElementById('editUid').value = uid;
+    
+    // 设置密码字段的默认值
+    document.getElementById('editPassword').value = '123456';
+    
+    // 获取学生详情并填充表单
+    fetch(`/api/get_student/${uid}`)
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const student = result.data;
+            document.getElementById('editCn').value = student.cn;
+            document.getElementById('editSn').value = student.sn;
+            document.getElementById('editMail').value = student.mail;
+            document.getElementById('editClass').value = student.class_name;
+            modal.show();
+        } else {
+            showAlert('error', result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', '加载失败，请稍后重试！');
+    });
 }
 
 function deleteStudent(uid) {
-    if (confirm('确定要删除学生 ' + uid + ' 吗？')) {
-        alert('删除学生：' + uid);
+    if (confirm('确定要删除学生 ' + uid + ' 吗？\n\n此操作不可撤销！')) {
+        // 显示加载状态
+        showAlert('info', '正在删除学生...');
+        
+        // 发送删除请求
+        fetch(`/api/delete_student/${uid}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showAlert('success', result.message);
+                // 刷新页面
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showAlert('error', result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', '删除失败，请稍后重试！');
+        });
     }
+}
+
+// 显示提示消息
+function showAlert(type, message) {
+    // 创建提示元素
+    let alertClass, iconClass;
+    switch(type) {
+        case 'success':
+            alertClass = 'alert-success';
+            iconClass = 'check-circle';
+            break;
+        case 'error':
+            alertClass = 'alert-danger';
+            iconClass = 'exclamation-circle';
+            break;
+        case 'info':
+            alertClass = 'alert-info';
+            iconClass = 'info-circle';
+            break;
+        default:
+            alertClass = 'alert-primary';
+            iconClass = 'info-circle';
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+    alertDiv.style.position = 'fixed';
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    
+    alertDiv.innerHTML = `
+        <i class="fas fa-${iconClass} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // 添加到页面
+    document.body.appendChild(alertDiv);
+    
+    // 自动移除
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
 }
 </script>
 {% endblock %}

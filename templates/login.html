@@ -71,7 +71,7 @@
 </div>
 
 <!-- 系统介绍 -->
-<div class="row mt-5">
+<div class="row mt-5 system-intro">
     <div class="col-12">
         <div class="card">
             <div class="card-body text-center">
@@ -161,6 +161,28 @@
 
 .captcha-container img:hover {
     border-color: #0d6efd;
+}
+
+/* 减少页脚上方留白 */
+.container-fluid {
+    padding-bottom: 1rem;
+}
+
+/* 调整主内容区域底部边距 */
+main.container {
+    margin-bottom: 0;
+    padding-bottom: 1rem;
+}
+
+/* 增加系统介绍区域的上边距 */
+.system-intro {
+    margin-top: 2rem !important;
+}
+
+/* 增加欢迎卡片内部的顶部内边距 */
+.system-intro .card-body {
+    padding-top: 3rem !important;
+    padding-bottom: 2rem !important;
 }
 </style>
 {% endblock %}

@@ -4,7 +4,7 @@
     --primary-color: #0d6efd;
     --secondary-color: #6c757d;
     --success-color: #198754;
-    --info-color: #0dcaf0;
+    --info-color: #98CBED;
     --warning-color: #ffc107;
     --danger-color: #dc3545;
     --light-color: #f8f9fa;
@@ -72,7 +72,7 @@ body {
 }
 
 .btn-info {
-    background: linear-gradient(45deg, #0dcaf0, #0aa2c0);
+    background: linear-gradient(45deg, #edd698, #98CBED);
 }
 
 .btn-warning {
@@ -191,6 +191,21 @@ body {
 /* 页脚样式 */
 footer {
     margin-top: auto;
+}
+
+/* 强制应用蓝色到bg-info类 */
+.bg-info {
+    background-color: #98CBED !important;
+}
+
+/* 确保所有info相关的背景都是蓝色 */
+.card-header.bg-info {
+    background-color: #98CBED !important;
+}
+
+/* 更具体的选择器确保生效 */
+div.card-header.bg-info.text-white {
+    background-color: #98CBED !important;
 }
 
 /* 响应式设计 */

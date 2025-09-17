@@ -177,6 +177,209 @@ def admin():
                          students=result['students'], 
                          pagination=result['pagination'])
 
+@app.route('/api/add_student', methods=['POST'])
+@login_required
+def add_student():
+    """添加学生API"""
+    try:
+        # 检查是否为管理员
+        if not is_admin(session.get('user_id')):
+            return jsonify({'success': False, 'message': '权限不足！'}), 403
+        
+        # 获取表单数据
+        data = request.get_json()
+        uid = data.get('uid', '').strip()
+        cn = data.get('cn', '').strip()
+        sn = data.get('sn', '').strip()
+        mail = data.get('mail', '').strip()
+        password = data.get('password', '123456').strip()
+        class_name = data.get('class_name', '').strip()
+        
+        # 验证必填字段
+        if not uid or not cn or not sn or not mail:
+            return jsonify({'success': False, 'message': '用户ID、姓名、姓氏和邮箱不能为空！'}), 400
+        
+        # 验证邮箱格式
+        import re
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', mail):
+            return jsonify({'success': False, 'message': '邮箱格式不正确！'}), 400
+        
+        # 连接到LDAP并添加学生
+        if not ldap_manager.connect():
+            return jsonify({'success': False, 'message': '连接LDAP服务器失败！'}), 500
+        
+        # 检查用户是否已存在
+        dn = f'uid={uid},ou=students,{ldap_manager.LDAP_BASE_DN}'
+        if ldap_manager.conn.search(dn, '(objectClass=inetOrgPerson)'):
+            ldap_manager.disconnect()
+            return jsonify({'success': False, 'message': f'用户ID {uid} 已存在！'}), 400
+        
+        # 添加学生
+        success = ldap_manager.add_student(uid, cn, sn, mail, password, class_name)
+        ldap_manager.disconnect()
+        
+        if success:
+            return jsonify({'success': True, 'message': f'学生 {uid} 添加成功！'})
+        else:
+            return jsonify({'success': False, 'message': '添加学生失败，请检查数据格式！'}), 500
+            
+    except Exception as e:
+        print(f"添加学生错误: {e}")
+        return jsonify({'success': False, 'message': f'服务器错误: {str(e)}'}), 500
+
+@app.route('/api/get_student/<uid>')
+@login_required
+def get_student(uid):
+    """获取学生详情API"""
+    try:
+        # 检查是否为管理员
+        if not is_admin(session.get('user_id')):
+            return jsonify({'success': False, 'message': '权限不足！'}), 403
+        
+        # 连接到LDAP并查询学生
+        if not ldap_manager.connect():
+            return jsonify({'success': False, 'message': '连接LDAP服务器失败！'}), 500
+        
+        student = ldap_manager.search_student(uid)
+        ldap_manager.disconnect()
+        
+        if student:
+            # 解析班级信息
+            class_name = "未分配"
+            if hasattr(student, 'description'):
+                desc = str(student.description)
+                if desc.startswith('班级: '):
+                    class_name = desc[3:]  # 去掉"班级: "前缀
+                elif desc.startswith('role:'):
+                    class_name = "管理员"
+            
+            student_data = {
+                'uid': str(student.uid),
+                'cn': str(student.cn),
+                'sn': str(student.sn),
+                'mail': str(student.mail),
+                'class_name': class_name
+            }
+            return jsonify({'success': True, 'data': student_data})
+        else:
+            return jsonify({'success': False, 'message': '学生不存在！'}), 404
+            
+    except Exception as e:
+        print(f"获取学生详情错误: {e}")
+        return jsonify({'success': False, 'message': f'服务器错误: {str(e)}'}), 500
+
+@app.route('/api/update_student/<uid>', methods=['PUT'])
+@login_required
+def update_student(uid):
+    """更新学生信息API"""
+    try:
+        print(f"开始更新学生 {uid}")
+        
+        # 检查是否为管理员
+        if not is_admin(session.get('user_id')):
+            print("权限检查失败")
+            return jsonify({'success': False, 'message': '权限不足！'}), 403
+        
+        # 获取表单数据
+        data = request.get_json()
+        print(f"接收到的数据: {data}")
+        
+        cn = data.get('cn', '').strip()
+        sn = data.get('sn', '').strip()
+        mail = data.get('mail', '').strip()
+        password = data.get('password', '').strip()
+        class_name = data.get('class_name', '').strip()
+        
+        # 验证必填字段
+        if not cn or not sn or not mail:
+            print("必填字段验证失败")
+            return jsonify({'success': False, 'message': '姓名、姓氏和邮箱不能为空！'}), 400
+        
+        # 验证邮箱格式
+        import re
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', mail):
+            print("邮箱格式验证失败")
+            return jsonify({'success': False, 'message': '邮箱格式不正确！'}), 400
+        
+        # 连接到LDAP并更新学生
+        if not ldap_manager.connect():
+            print("LDAP连接失败")
+            return jsonify({'success': False, 'message': '连接LDAP服务器失败！'}), 500
+        
+        # 检查用户是否存在
+        dn = f'uid={uid},ou=students,{ldap_manager.LDAP_BASE_DN}'
+        print(f"查找用户DN: {dn}")
+        
+        if not ldap_manager.conn.search(dn, '(objectClass=inetOrgPerson)'):
+            print("用户不存在")
+            ldap_manager.disconnect()
+            return jsonify({'success': False, 'message': '学生不存在！'}), 404
+        
+        # 准备更新数据 - 使用字典格式
+        changes = {
+            'cn': [(MODIFY_REPLACE, [cn])],
+            'sn': [(MODIFY_REPLACE, [sn])],
+            'mail': [(MODIFY_REPLACE, [mail])]
+        }
+        
+        if password:
+            changes['userPassword'] = [(MODIFY_REPLACE, [password])]
+        
+        # 更新班级信息
+        if class_name:
+            changes['description'] = [(MODIFY_REPLACE, [f'班级: {class_name}'])]
+        else:
+            changes['description'] = [(MODIFY_REPLACE, [''])]
+        
+        print(f"准备执行更新: {changes}")
+        
+        # 执行更新
+        if ldap_manager.conn.modify(dn, changes):
+            print("更新成功")
+            ldap_manager.disconnect()
+            return jsonify({'success': True, 'message': f'学生 {uid} 更新成功！'})
+        else:
+            print(f"更新失败: {ldap_manager.conn.last_error}")
+            ldap_manager.disconnect()
+            return jsonify({'success': False, 'message': f'更新学生失败: {ldap_manager.conn.last_error}'}), 500
+            
+    except Exception as e:
+        print(f"更新学生错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'服务器错误: {str(e)}'}), 500
+
+@app.route('/api/delete_student/<uid>', methods=['DELETE'])
+@login_required
+def delete_student(uid):
+    """删除学生API"""
+    try:
+        # 检查是否为管理员
+        if not is_admin(session.get('user_id')):
+            return jsonify({'success': False, 'message': '权限不足！'}), 403
+        
+        # 连接到LDAP并删除学生
+        if not ldap_manager.connect():
+            return jsonify({'success': False, 'message': '连接LDAP服务器失败！'}), 500
+        
+        # 检查用户是否存在
+        dn = f'uid={uid},ou=students,{ldap_manager.LDAP_BASE_DN}'
+        if not ldap_manager.conn.search(dn, '(objectClass=inetOrgPerson)'):
+            ldap_manager.disconnect()
+            return jsonify({'success': False, 'message': '学生不存在！'}), 404
+        
+        # 执行删除
+        if ldap_manager.conn.delete(dn):
+            ldap_manager.disconnect()
+            return jsonify({'success': True, 'message': f'学生 {uid} 删除成功！'})
+        else:
+            ldap_manager.disconnect()
+            return jsonify({'success': False, 'message': '删除学生失败！'}), 500
+            
+    except Exception as e:
+        print(f"删除学生错误: {e}")
+        return jsonify({'success': False, 'message': f'服务器错误: {str(e)}'}), 500
+
 def authenticate_user(username, password):
     """验证用户凭据"""
     try:
